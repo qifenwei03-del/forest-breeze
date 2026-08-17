@@ -225,13 +225,23 @@ export interface WindConfig {
   paused: boolean;
 }
 
+/**
+ * 預設值 = 實際調校後的結果。
+ *
+ * 注意 windStrength 與 movementScale 的合成增益：
+ *   (1.00 / REFERENCE_WIND_STRENGTH) × 1.69 = (1.00 / 0.15) × 1.69 ≈ 11.27×
+ * 所以實際位移上限是 AMPLITUDE 宣告值的 11.27 倍：
+ *   GRAY  2.6 px × 11.27 ≈ 29 px
+ *   BLACK 6.5 px × 11.27 ≈ 73 px
+ * 配合 animationSpeed 0.24×（循環長度 8 / 0.24 ≈ 33 秒）變成大幅度但極慢的移動。
+ */
 export const DEFAULT_CONFIG: WindConfig = {
-  windStrength: 0.15,
-  windDirection: 0,
-  animationSpeed: 1.0,
-  movementScale: 1.0,
-  fogStrength: 0.28,
-  fogSpeed: 1.5,
+  windStrength: 1.0,
+  windDirection: 15,
+  animationSpeed: 0.24,
+  movementScale: 1.69,
+  fogStrength: 0.42,
+  fogSpeed: 4.7,
   movementMode: 'ADVANCED',
   maskEnabled: true,
   paused: false,
