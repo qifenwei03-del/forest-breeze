@@ -64,6 +64,135 @@
         display: none;
       }
 
+      /* ---------- weather panel ---------- */
+      #weather {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 9;
+        width: 340px;
+        max-width: calc(100vw - 40px);
+        padding: 16px 20px 14px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        /* 毛玻璃。底下是明亮的霧，所以再壓一層極淡的暗色維持文字可讀性 */
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.22),
+          rgba(210, 225, 215, 0.14)
+        );
+        backdrop-filter: blur(22px) saturate(1.25);
+        -webkit-backdrop-filter: blur(22px) saturate(1.25);
+        box-shadow: 0 8px 32px rgba(20, 35, 25, 0.18);
+        color: #fff;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC',
+          'Microsoft JhengHei', sans-serif;
+        text-shadow: 0 1px 3px rgba(20, 35, 25, 0.45);
+        line-height: 1.35;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      #weather.wx-ready {
+        opacity: 1;
+      }
+
+      #weather .wx-place {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      #weather .wx-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 2px;
+      }
+
+      #weather .wx-temp {
+        font-size: 52px;
+        font-weight: 300;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+
+      #weather .wx-cond {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      #weather .wx-feels {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 12px;
+      }
+
+      #weather .wx-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 11px 10px;
+      }
+
+      #weather .wx-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        color: rgba(255, 255, 255, 0.72);
+        white-space: nowrap;
+      }
+
+      #weather .wx-label svg {
+        width: 13px;
+        height: 13px;
+        flex: none;
+        opacity: 0.85;
+      }
+
+      #weather .wx-value {
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      #weather .wx-sub {
+        font-size: 11.5px;
+        color: rgba(255, 255, 255, 0.78);
+        margin-left: 5px;
+      }
+
+      #weather .wx-status {
+        margin-top: 12px;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      #weather .wx-status.wx-error {
+        color: #ffcf9a;
+      }
+
+      /* 沒有 backdrop-filter 的瀏覽器：加深底色，避免文字糊在亮霧上 */
+      @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        #weather {
+          background: rgba(38, 52, 44, 0.55);
+        }
+      }
+
+      @media (max-width: 560px) {
+        #weather {
+          width: 300px;
+          padding: 14px 16px 12px;
+        }
+        #weather .wx-temp {
+          font-size: 44px;
+        }
+      }
+
       /* ---------- debug panel ---------- */
       #debug {
         position: fixed;
@@ -206,7 +335,7 @@
         color: #ffb266;
       }
     </style>
-    <script type="module" crossorigin src="/forest-breeze/assets/index-D9prFi5r.js"></script>
+    <script type="module" crossorigin src="/forest-breeze/assets/index-CIoIo9-o.js"></script>
   </head>
   <body>
     <div id="app"></div>
