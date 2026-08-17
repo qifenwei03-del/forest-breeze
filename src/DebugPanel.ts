@@ -88,6 +88,9 @@ export interface DebugPanelHandle {
   dispose(): void;
 }
 
+/** 切換面板顯示的按鍵。 */
+const TOGGLE_KEY = 'e';
+
 export function createDebugPanel(
   scene: ForestScene,
   notes: string[],
@@ -95,6 +98,8 @@ export function createDebugPanel(
 ): DebugPanelHandle {
   const root = document.createElement('div');
   root.id = 'debug';
+  // 預設隱藏，按 E 才顯示。
+  root.classList.add('panel-hidden');
 
   const head = document.createElement('div');
   head.className = 'dbg-head';
@@ -338,10 +343,30 @@ export function createDebugPanel(
   // 保證 listener 只有一份，也保證顯示的數字和實際 canvas 尺寸同步。
   scene.onResized = refresh;
 
+  // ----- 按 E 顯示／隱藏面板 -----
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key.toLowerCase() !== TOGGLE_KEY) return;
+    // 讓 Ctrl+E / Cmd+E 之類的瀏覽器快捷鍵照常運作
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    // 焦點在輸入元件時不攔截（滑桿本身用方向鍵操作，不受影響）
+    const target = event.target as HTMLElement | null;
+    if (target?.isContentEditable) return;
+    const tag = target?.tagName;
+    if (tag === 'INPUT' && (target as HTMLInputElement).type === 'text') return;
+    if (tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    event.preventDefault();
+    const nowHidden = root.classList.toggle('panel-hidden');
+    // 從隱藏變成顯示時補一次數值，隱藏期間的 resize 才不會留下舊資料
+    if (!nowHidden) refresh();
+  };
+  window.addEventListener('keydown', onKeyDown);
+
   return {
     refresh,
     dispose() {
       if (flashTimer !== 0) window.clearTimeout(flashTimer);
+      window.removeEventListener('keydown', onKeyDown);
       scene.onResized = null;
       root.remove();
     },
