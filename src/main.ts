@@ -1,5 +1,6 @@
 import { ForestScene } from './ForestScene';
 import { createDebugPanel } from './DebugPanel';
+import { createWeatherPanel } from './WeatherPanel';
 import { createFallbackMask, loadMaskTexture, loadPhotoTexture, type LoadedTexture } from './textures';
 import { ASSETS } from './config';
 import { loadSavedConfig } from './settings';
@@ -104,6 +105,8 @@ async function boot(): Promise<void> {
   }
 
   const panel = createDebugPanel(scene, notes, saved !== null);
+  // 天氣面板獨立運作：讀取失敗只會顯示錯誤狀態並重試，不影響森林動畫。
+  const weather = createWeatherPanel();
   scene.start();
 
   status!.className = 'hidden';
@@ -117,6 +120,7 @@ async function boot(): Promise<void> {
   // HMR：換檔時銷毀舊場景，避免累積 RAF loop / resize listener / WebGL context
   if (import.meta.hot) {
     import.meta.hot.dispose(() => {
+      weather.dispose();
       panel.dispose();
       scene.dispose();
     });

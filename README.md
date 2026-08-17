@@ -15,6 +15,28 @@ npm run dev
 
 打開 http://localhost:5173
 
+## 天氣面板
+
+左上角顯示台北市大安區的即時天氣。
+
+資料來源：[Open-Meteo](https://open-meteo.com/) —— 免費、**不需要 API key**。
+靜態網站放 key 等於公開，所以只能選免鑰的服務。
+
+- 座標寫死（25.0326, 121.5435），**不使用 Geolocation**，不會向使用者要定位權限
+- 兩個端點：`forecast`（溫度／風／雲量／氣壓／能見度／紫外線／日出日落）與
+  `air-quality`（美國 AQI）
+- 空氣品質失敗不影響其他欄位；整個面板失敗也不影響森林動畫，
+  只會顯示錯誤狀態並每分鐘重試
+- 正常情況每 10 分鐘更新一次（Open-Meteo 本身是每小時更新）
+
+`visibility` / `uv_index` / `precipitation_probability` 在 Open-Meteo 只有 hourly 沒有 current，
+所以程式會自己把 hourly 陣列對到目前這一小時。
+
+面板是 `pointer-events: none`，不會擋到任何操作。
+沒有 `backdrop-filter` 的瀏覽器會退回較深的底色，避免白字糊在亮霧上。
+
+要換地點就改 `src/weather.ts` 的 `LOCATION`。
+
 ## 素材
 
 兩張圖都放在 `public/`，尺寸必須完全相同：
