@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!--
+      擋搜尋引擎收錄。
+      這一行才是真正有效的控制 —— GitHub Pages 的 project site 位於
+      <user>.github.io/<repo>/，而爬蟲只讀網域根目錄的 /robots.txt，
+      我們放在 public/robots.txt 的那份會落在 /<repo>/robots.txt，爬蟲不會讀到。
+    -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <title>Forest Breeze</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      #app {
+        position: fixed;
+        inset: 0;
+        background: #000;
+      }
+
+      #app canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ---------- loading / error ---------- */
+      #status {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        color: #cfcfcf;
+        font-size: 13px;
+        line-height: 1.7;
+        text-align: center;
+        letter-spacing: 0.02em;
+        pointer-events: none;
+        max-width: 80vw;
+      }
+
+      #status.error {
+        color: #ff8f7a;
+        text-align: left;
+        pointer-events: auto;
+      }
+
+      #status.hidden {
+        display: none;
+      }
+
+      /* ---------- debug panel ---------- */
+      #debug {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 10;
+        width: 244px;
+        color: #e8e8e8;
+        font-size: 11px;
+        line-height: 1.5;
+        background: rgba(8, 10, 9, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        backdrop-filter: blur(6px);
+        user-select: none;
+      }
+
+      #debug .dbg-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 9px;
+        cursor: pointer;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      #debug.collapsed .dbg-head {
+        border-bottom: none;
+      }
+
+      #debug .dbg-body {
+        padding: 8px 9px 10px;
+      }
+
+      #debug.collapsed .dbg-body {
+        display: none;
+      }
+
+      #debug .row {
+        margin-bottom: 8px;
+      }
+
+      #debug .row label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3px;
+        color: #b9c3ba;
+      }
+
+      #debug .row label b {
+        color: #fff;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #debug input[type='range'] {
+        width: 100%;
+        margin: 0;
+        height: 14px;
+        accent-color: #7fd48a;
+      }
+
+      #debug select {
+        width: 100%;
+        font: inherit;
+        font-size: 11px;
+        color: #e8e8e8;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 4px;
+        padding: 3px 4px;
+      }
+
+      #debug .checks {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      #debug .buttons {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+
+      #debug button {
+        flex: 1;
+        font: inherit;
+        font-size: 11px;
+        color: #e8e8e8;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 4px;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+
+      #debug button:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      #debug .saved-note {
+        color: #7fd48a;
+        font-size: 10px;
+        min-height: 13px;
+        margin-bottom: 6px;
+      }
+
+      #debug .saved-note.warn {
+        color: #ffb266;
+      }
+
+      #debug .info {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 7px;
+        color: #9aa79c;
+        font-size: 10px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #debug .info div {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      #debug .info span {
+        color: #dfe7e0;
+      }
+
+      #debug .warn {
+        color: #ffb266;
+      }
+    </style>
+    <script type="module" crossorigin src="/forest-breeze/assets/index-DU2j7UFR.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="status">Loading&hellip;</div>
+  </body>
+</html>
