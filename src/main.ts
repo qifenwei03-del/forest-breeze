@@ -106,7 +106,7 @@ async function boot(): Promise<void> {
 
   const panel = createDebugPanel(scene, notes, saved !== null);
   // 天氣面板獨立運作：讀取失敗只會顯示錯誤狀態並重試，不影響森林動畫。
-  const weather = createWeatherPanel();
+  const weather = createWeatherPanel(scene);
   scene.start();
 
   status!.className = 'hidden';

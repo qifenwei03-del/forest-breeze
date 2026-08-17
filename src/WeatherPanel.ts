@@ -1,4 +1,27 @@
+import type { ForestScene } from './ForestScene';
 import { fetchWeather, LOCATION, type WeatherData } from './weather';
+
+/**
+ * 面板在正方形圖片中的版面比例。
+ *
+ * 面板要跟著「圖片」走而不是視窗 —— 圖片是 contain 置中的，
+ * 視窗比例不同時左右或上下會留黑，釘在視窗角落會跑到黑邊上。
+ *
+ * inset + width 加起來剛好落在圖片的左上 1/4 內（0.025 + 0.446 = 0.471 < 0.5）。
+ */
+const LAYOUT = {
+  /** 距離圖片邊緣的內縮，佔圖片邊長的比例。 */
+  inset: 0.025,
+  /** 面板寬度，佔圖片邊長的比例。 */
+  width: 0.446,
+  /**
+   * 基準字級佔圖片邊長的比例。面板內部全部用 em，
+   * 所以整張卡片會跟著圖片等比縮放，版面比例在任何視窗大小都一樣。
+   */
+  fontScale: 0.0142,
+  /** 字級下限，避免視窗極小時完全看不清。 */
+  minFontPx: 7,
+};
 
 /** 每隔多久重新抓一次（毫秒）。Open-Meteo 的資料本來就是每小時更新，10 分鐘足夠。 */
 const REFRESH_MS = 10 * 60 * 1000;
@@ -70,7 +93,7 @@ const CELLS: Cell[] = [
  *
  * 抓取失敗不會影響森林動畫 —— 面板自己顯示錯誤狀態並定時重試。
  */
-export function createWeatherPanel(): WeatherPanelHandle {
+export function createWeatherPanel(scene: ForestScene): WeatherPanelHandle {
   const root = document.createElement('div');
   root.id = 'weather';
   root.setAttribute('aria-live', 'polite');
@@ -123,6 +146,26 @@ export function createWeatherPanel(): WeatherPanelHandle {
   root.append(place, head, feels, grid, status);
   document.body.appendChild(root);
 
+  // ---- 版面：對齊圖片而不是視窗 ----
+  const layout = () => {
+    const m = scene.getMetrics();
+    // 圖片是正方形（contain），取短邊即可
+    const size = Math.min(m.displayWidth, m.displayHeight);
+    if (size <= 0) return;
+    // 圖片在 canvas 裡是置中的
+    const originX = (m.cssWidth - m.displayWidth) / 2;
+    const originY = (m.cssHeight - m.displayHeight) / 2;
+    const inset = size * LAYOUT.inset;
+
+    root.style.left = `${Math.round(originX + inset)}px`;
+    root.style.top = `${Math.round(originY + inset)}px`;
+    root.style.width = `${Math.round(size * LAYOUT.width)}px`;
+    root.style.fontSize = `${Math.max(size * LAYOUT.fontScale, LAYOUT.minFontPx).toFixed(2)}px`;
+  };
+
+  layout();
+  const unsubscribeResize = scene.onResize(layout);
+
   // ---- 載入流程 ----
   let controller: AbortController | null = null;
   let timer = 0;
@@ -172,6 +215,7 @@ export function createWeatherPanel(): WeatherPanelHandle {
       disposed = true;
       if (timer !== 0) window.clearTimeout(timer);
       controller?.abort();
+      unsubscribeResize();
       root.remove();
     },
   };

@@ -341,7 +341,7 @@ export function createDebugPanel(
 
   // 不自己掛 window resize listener：直接接 ForestScene 的 resize 通知，
   // 保證 listener 只有一份，也保證顯示的數字和實際 canvas 尺寸同步。
-  scene.onResized = refresh;
+  const unsubscribeResize = scene.onResize(refresh);
 
   // ----- 按 E 顯示／隱藏面板 -----
   const onKeyDown = (event: KeyboardEvent) => {
@@ -367,7 +367,7 @@ export function createDebugPanel(
     dispose() {
       if (flashTimer !== 0) window.clearTimeout(flashTimer);
       window.removeEventListener('keydown', onKeyDown);
-      scene.onResized = null;
+      unsubscribeResize();
       root.remove();
     },
   };

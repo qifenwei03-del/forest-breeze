@@ -105,8 +105,18 @@ export class ForestScene {
     this.dprQuery = query;
   }
 
-  /** resize 完成後的通知（debug panel 用來刷新解析度資訊）。 */
-  onResized: (() => void) | null = null;
+  /**
+   * resize 完成後的通知。
+   * 用 Set 而不是單一 callback —— debug 面板與天氣面板都要訂閱，
+   * 單一插槽會被後註冊的那個蓋掉。
+   */
+  private readonly resizeListeners = new Set<() => void>();
+
+  /** 訂閱 resize 通知，回傳取消訂閱的函式。 */
+  onResize(listener: () => void): () => void {
+    this.resizeListeners.add(listener);
+    return () => this.resizeListeners.delete(listener);
+  }
 
   constructor(container: HTMLElement, photo: LoadedTexture, mask: LoadedTexture) {
     this.container = container;
@@ -276,7 +286,7 @@ export class ForestScene {
     this.renderer.setSize(cssWidth, cssHeight, true);
 
     this.needsRender = true;
-    this.onResized?.();
+    for (const listener of this.resizeListeners) listener();
   }
 
   // -------------------------------------------------------------------------
@@ -466,7 +476,7 @@ export class ForestScene {
     window.removeEventListener('resize', this.handleResize);
     this.dprQuery?.removeEventListener('change', this.handleDprChange);
     this.dprQuery = null;
-    this.onResized = null;
+    this.resizeListeners.clear();
 
     this.scene.remove(this.mesh);
     this.geometry.dispose();

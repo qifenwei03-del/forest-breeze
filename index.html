@@ -65,15 +65,19 @@
       }
 
       /* ---------- weather panel ---------- */
+      /*
+        位置、寬度、基準字級都由 WeatherPanel.ts 依「圖片」的尺寸算出來後
+        以 inline style 設定（圖片是 contain 置中的，釘在視窗角落會跑到黑邊上）。
+        這裡全部用 em，整張卡片就會跟著圖片等比縮放，
+        版面比例在任何視窗大小都維持一致。
+      */
       #weather {
         position: fixed;
-        top: 20px;
-        left: 20px;
         z-index: 9;
-        width: 340px;
-        max-width: calc(100vw - 40px);
-        padding: 16px 20px 14px;
-        border-radius: 22px;
+        /* 沒有這行的話 padding 會加到 inline 設定的寬度上，卡片會超出左上 1/4 */
+        box-sizing: border-box;
+        padding: 1.48em 1.85em 1.3em;
+        border-radius: 2.04em;
         border: 1px solid rgba(255, 255, 255, 0.28);
         /* 毛玻璃。底下是明亮的霧，所以再壓一層極淡的暗色維持文字可讀性 */
         background: linear-gradient(
@@ -101,7 +105,7 @@
       }
 
       #weather .wx-place {
-        font-size: 13px;
+        font-size: 1.2em;
         letter-spacing: 0.04em;
         color: rgba(255, 255, 255, 0.92);
       }
@@ -110,65 +114,65 @@
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        gap: 12px;
-        margin-top: 2px;
+        gap: 1.1em;
+        margin-top: 0.18em;
       }
 
       #weather .wx-temp {
-        font-size: 52px;
+        font-size: 4.82em;
         font-weight: 300;
         letter-spacing: -0.02em;
         line-height: 1.05;
       }
 
       #weather .wx-cond {
-        font-size: 15px;
+        font-size: 1.39em;
         color: rgba(255, 255, 255, 0.95);
       }
 
       #weather .wx-feels {
-        font-size: 12px;
+        font-size: 1.11em;
         color: rgba(255, 255, 255, 0.8);
-        margin-bottom: 12px;
+        margin-bottom: 1em;
       }
 
       #weather .wx-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 11px 10px;
+        gap: 1.02em 0.93em;
       }
 
       #weather .wx-label {
         display: flex;
         align-items: center;
-        gap: 4px;
-        font-size: 10.5px;
+        gap: 0.37em;
+        font-size: 0.97em;
         color: rgba(255, 255, 255, 0.72);
         white-space: nowrap;
       }
 
       #weather .wx-label svg {
-        width: 13px;
-        height: 13px;
+        width: 1.24em;
+        height: 1.24em;
         flex: none;
         opacity: 0.85;
       }
 
       #weather .wx-value {
-        font-size: 14px;
+        font-size: 1.3em;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
       }
 
       #weather .wx-sub {
-        font-size: 11.5px;
+        font-size: 0.82em;
         color: rgba(255, 255, 255, 0.78);
-        margin-left: 5px;
+        margin-left: 0.38em;
       }
 
       #weather .wx-status {
-        margin-top: 12px;
-        font-size: 10px;
+        margin-top: 1.1em;
+        font-size: 0.93em;
         color: rgba(255, 255, 255, 0.6);
       }
 
@@ -180,16 +184,6 @@
       @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
         #weather {
           background: rgba(38, 52, 44, 0.55);
-        }
-      }
-
-      @media (max-width: 560px) {
-        #weather {
-          width: 300px;
-          padding: 14px 16px 12px;
-        }
-        #weather .wx-temp {
-          font-size: 44px;
         }
       }
 
