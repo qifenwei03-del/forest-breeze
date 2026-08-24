@@ -109,7 +109,7 @@ async function boot(): Promise<void> {
   // 天氣面板獨立運作：讀取失敗只會顯示錯誤狀態並重試，不影響森林動畫。
   const weather = createWeatherPanel(scene);
   // 按 A 進入 motion field 編輯模式
-  const fieldEditor = createMotionFieldEditor(scene);
+  const fieldEditor = createMotionFieldEditor(scene, weather);
   scene.start();
 
   status!.className = 'hidden';

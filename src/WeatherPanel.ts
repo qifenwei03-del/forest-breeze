@@ -29,7 +29,28 @@ const REFRESH_MS = 10 * 60 * 1000;
 /** 抓取失敗後的重試間隔。 */
 const RETRY_MS = 60 * 1000;
 
+/** 顯示／隱藏狀態要跨重整記住，不然每次開頁都要再關一次。 */
+const VISIBILITY_KEY = 'forest-breeze:weather-visible';
+
+function loadVisible(): boolean {
+  try {
+    return localStorage.getItem(VISIBILITY_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+function saveVisible(visible: boolean): void {
+  try {
+    localStorage.setItem(VISIBILITY_KEY, visible ? '1' : '0');
+  } catch {
+    /* 存不了就算了，不影響顯示 */
+  }
+}
+
 export interface WeatherPanelHandle {
+  setVisible(visible: boolean): void;
+  isVisible(): boolean;
   dispose(): void;
 }
 
@@ -146,6 +167,10 @@ export function createWeatherPanel(scene: ForestScene): WeatherPanelHandle {
   root.append(place, head, feels, grid, status);
   document.body.appendChild(root);
 
+  let visible = loadVisible();
+  const applyVisibility = () => root.classList.toggle('wx-hidden', !visible);
+  applyVisibility();
+
   // ---- 版面：對齊圖片而不是視窗 ----
   const layout = () => {
     const m = scene.getMetrics();
@@ -211,6 +236,14 @@ export function createWeatherPanel(scene: ForestScene): WeatherPanelHandle {
   void load();
 
   return {
+    setVisible(next: boolean) {
+      visible = next;
+      applyVisibility();
+      saveVisible(next);
+    },
+    isVisible() {
+      return visible;
+    },
     dispose() {
       disposed = true;
       if (timer !== 0) window.clearTimeout(timer);

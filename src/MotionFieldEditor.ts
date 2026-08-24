@@ -1,4 +1,5 @@
 import type { ForestScene } from './ForestScene';
+import type { WeatherPanelHandle } from './WeatherPanel';
 import { GRID, MAX_AMP, MotionField } from './motionField';
 
 /**
@@ -29,7 +30,10 @@ export interface MotionFieldEditorHandle {
   dispose(): void;
 }
 
-export function createMotionFieldEditor(scene: ForestScene): MotionFieldEditorHandle {
+export function createMotionFieldEditor(
+  scene: ForestScene,
+  weather?: WeatherPanelHandle,
+): MotionFieldEditorHandle {
   const field = scene.motionField;
 
   // 開場：先用存檔；沒有存檔就用目前的全域風向鋪平
@@ -285,7 +289,19 @@ export function createMotionFieldEditor(scene: ForestScene): MotionFieldEditorHa
   });
   onLabel.append(onInput, document.createTextNode('Field ON'));
 
-  panel.append(title, hint, radiusRow, ampRow, buttons, onLabel, info);
+  // 天氣面板開關。狀態由 WeatherPanel 自己存進 localStorage，跨重整保留。
+  const wxLabel = document.createElement('label');
+  wxLabel.className = 'mf-check';
+  const wxInput = document.createElement('input');
+  wxInput.type = 'checkbox';
+  wxInput.checked = weather ? weather.isVisible() : false;
+  wxInput.disabled = !weather;
+  wxInput.addEventListener('change', () => {
+    weather?.setVisible(wxInput.checked);
+  });
+  wxLabel.append(wxInput, document.createTextNode('天氣面板'));
+
+  panel.append(title, hint, radiusRow, ampRow, buttons, onLabel, wxLabel, info);
 
   const updateInfo = () => {
     if (!pointer) {
