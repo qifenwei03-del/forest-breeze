@@ -21,6 +21,7 @@ import {
   type WindConfig,
 } from './config';
 import type { LoadedTexture } from './textures';
+import { MotionField } from './motionField';
 
 /** simplex2d.glsl 提供 snoise()，必須排在使用它的 forest.frag.glsl 前面。 */
 const fragmentSrc = `${noiseSrc}\n${fragmentBodySrc}`;
@@ -63,6 +64,9 @@ export class ForestScene {
   private readonly geometry: THREE.PlaneGeometry;
   private readonly material: THREE.ShaderMaterial;
   private readonly mesh: THREE.Mesh;
+
+  /** 可視化 motion field。編輯器直接改它，改完呼叫 markMotionFieldDirty()。 */
+  readonly motionField: MotionField;
 
   private readonly photo: LoadedTexture;
   private readonly mask: LoadedTexture;
@@ -140,6 +144,8 @@ export class ForestScene {
 
     this.container.appendChild(this.renderer.domElement);
 
+    this.motionField = new MotionField();
+
     this.geometry = new THREE.PlaneGeometry(2, 2);
 
     this.material = new THREE.ShaderMaterial({
@@ -157,8 +163,11 @@ export class ForestScene {
           value: new THREE.Vector2(0.5 / this.photo.width, 0.5 / this.photo.height),
         },
         uPhase: { value: 0 },
-        uMidAxis: { value: new THREE.Vector2(1, 0) },
-        uStrongAxis: { value: new THREE.Vector2(0, 1) },
+        uWindDir: { value: new THREE.Vector2(1, 0) },
+        uMidRot: { value: new THREE.Vector2(1, 0) },
+        uStrongRot: { value: new THREE.Vector2(1, 0) },
+        uMotionField: { value: this.motionField.texture },
+        uUseMotionField: { value: 0 },
         uWindStrength: { value: this.config.windStrength },
         uWindReference: { value: REFERENCE_WIND_STRENGTH },
         uMovementScale: { value: this.config.movementScale },
@@ -195,6 +204,14 @@ export class ForestScene {
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.frustumCulled = false;
     this.scene.add(this.mesh);
+
+    // 兩層相對風向的旋轉量是固定的，只需要算一次
+    const rot = (deg: number, target: THREE.Vector2) => {
+      const rad = (deg * Math.PI) / 180;
+      target.set(Math.cos(rad), Math.sin(rad));
+    };
+    rot(TIER_AXIS_DEG.mid, this.material.uniforms.uMidRot.value as THREE.Vector2);
+    rot(TIER_AXIS_DEG.strong, this.material.uniforms.uStrongRot.value as THREE.Vector2);
 
     this.setWindDirection(this.config.windDirection);
     this.resize();
@@ -345,14 +362,23 @@ export class ForestScene {
    */
   setWindDirection(degrees: number): void {
     this.config.windDirection = degrees;
-    const toVec = (deg: number) => {
-      const rad = ((degrees + deg) * Math.PI) / 180;
-      return [Math.cos(rad), Math.sin(rad)] as const;
-    };
-    const [mx, my] = toVec(TIER_AXIS_DEG.mid);
-    const [sx, sy] = toVec(TIER_AXIS_DEG.strong);
-    (this.material.uniforms.uMidAxis.value as THREE.Vector2).set(mx, my);
-    (this.material.uniforms.uStrongAxis.value as THREE.Vector2).set(sx, sy);
+    const rad = (degrees * Math.PI) / 180;
+    (this.material.uniforms.uWindDir.value as THREE.Vector2).set(Math.cos(rad), Math.sin(rad));
+    this.needsRender = true;
+  }
+
+  /** motion field 是否生效。關閉時方向來自 windDirection，振幅倍率為 1。 */
+  setMotionFieldEnabled(enabled: boolean): void {
+    this.material.uniforms.uUseMotionField.value = enabled ? 1 : 0;
+    this.needsRender = true;
+  }
+
+  isMotionFieldEnabled(): boolean {
+    return this.material.uniforms.uUseMotionField.value === 1;
+  }
+
+  /** 編輯器改完 motionField 之後呼叫，讓畫面重繪。texture 本身由 MotionField 自己上傳。 */
+  markMotionFieldDirty(): void {
     this.needsRender = true;
   }
 
@@ -483,6 +509,7 @@ export class ForestScene {
     this.material.dispose();
     this.photo.texture.dispose();
     this.mask.texture.dispose();
+    this.motionField.dispose();
     this.renderer.dispose();
 
     const canvas = this.renderer.domElement;

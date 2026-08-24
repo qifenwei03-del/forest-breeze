@@ -187,6 +187,117 @@
         }
       }
 
+      /* ---------- motion field editor ---------- */
+      #mf-canvas {
+        position: fixed;
+        z-index: 8;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      #mf-canvas.mf-active {
+        pointer-events: auto;
+        opacity: 1;
+        cursor: crosshair;
+      }
+
+      #mf-panel {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        z-index: 11;
+        width: 232px;
+        box-sizing: border-box;
+        padding: 9px 11px 10px;
+        color: #e8e8e8;
+        font-size: 11px;
+        line-height: 1.5;
+        background: rgba(8, 10, 9, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        backdrop-filter: blur(6px);
+        user-select: none;
+        display: none;
+      }
+
+      #mf-panel.mf-active {
+        display: block;
+      }
+
+      #mf-panel .mf-title {
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        margin-bottom: 2px;
+      }
+
+      #mf-panel .mf-hint {
+        font-size: 10px;
+        color: #9aa79c;
+        margin-bottom: 8px;
+      }
+
+      #mf-panel .mf-row {
+        margin-bottom: 8px;
+      }
+
+      #mf-panel .mf-row label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3px;
+        color: #b9c3ba;
+      }
+
+      #mf-panel .mf-row label b {
+        color: #fff;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #mf-panel input[type='range'] {
+        width: 100%;
+        margin: 0;
+        height: 14px;
+        accent-color: #7fd48a;
+      }
+
+      #mf-panel .mf-buttons {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 7px;
+      }
+
+      #mf-panel button {
+        flex: 1;
+        font: inherit;
+        font-size: 11px;
+        color: #e8e8e8;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 4px;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+
+      #mf-panel button:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      #mf-panel .mf-check {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 7px;
+      }
+
+      #mf-panel .mf-info {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 6px;
+        font-size: 10px;
+        color: #9aa79c;
+        font-variant-numeric: tabular-nums;
+      }
+
       /* ---------- debug panel ---------- */
       #debug {
         position: fixed;

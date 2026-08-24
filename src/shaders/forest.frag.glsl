@@ -58,8 +58,11 @@ uniform vec2  uTexResolution;      // 原生像素尺寸，例如 (2496, 2496)
 uniform vec2  uHalfTexel;          // 0.5 / uTexResolution
 
 uniform float uPhase;              // 0..1，循環相位
-uniform vec2  uMidAxis;            // GRAY 的擺動軸向（單位向量）
-uniform vec2  uStrongAxis;         // BLACK 的擺動軸向（單位向量）
+uniform vec2  uWindDir;            // 全域風向（motion field 關閉時使用）
+uniform vec2  uMidRot;             // GRAY 相對風向的旋轉量 (cos, sin)
+uniform vec2  uStrongRot;          // BLACK 相對風向的旋轉量 (cos, sin)
+uniform sampler2D uMotionField;    // motion field：rg = 方向、b = 振幅倍率
+uniform float uUseMotionField;     // 1 = 使用 field 的方向與振幅
 uniform float uWindStrength;       // 0..1
 uniform float uWindReference;      // 振幅校準基準（config.REFERENCE_WIND_STRENGTH）
 uniform float uMovementScale;      // 0..2
@@ -94,6 +97,11 @@ const float SIGNAL_GAIN = 1.29;
  */
 float harm(float k, float p, float ph) {
   return sin(TAU * (k * p + ph));
+}
+
+/** 將向量旋轉，cs = (cos, sin)。 */
+vec2 rotateBy(vec2 v, vec2 cs) {
+  return vec2(v.x * cs.x - v.y * cs.y, v.x * cs.y + v.y * cs.x);
 }
 
 /** 波形塑形：峰值稍尖、中段稍飽滿，像陣風而不是等幅擺動。極值仍為 ±1。 */
@@ -185,9 +193,35 @@ void main() {
   float wMid    = mSoft - mHard;   // 因為 staticEnd < strongStart，這個值恆 >= 0
   float wStrong = mHard;
 
+  // ---------------------------------------------------------------------
+  // Motion field：逐區域的方向與振幅倍率。
+  //
+  // 兩層的軸向偏移（uMidRot / uStrongRot）是疊在這個方向上的，
+  // 所以「GRAY 沿風向、BLACK 垂直於風向」的關係不會被 field 破壞 ——
+  // field 改的是「這一區的風往哪吹、吹多強」。
+  //
+  // uUseMotionField = 0 時 baseDir = 全域風向、fieldAmp = 1，
+  // 行為與沒有 field 的版本逐像素相同。
+  //
+  // 一律用未位移的 uv 取樣。field texture 是線性內插的，
+  // 格與格之間平滑過渡，不會因為方向突變製造局部應變。
+  // ---------------------------------------------------------------------
+  vec2 baseDir = uWindDir;
+  float fieldAmp = 1.0;
+  if (uUseMotionField > 0.5) {
+    vec4 mf = texture2D(uMotionField, uv);
+    vec2 fd = mf.rg * 2.0 - 1.0;
+    float fdLen = length(fd);
+    baseDir = fdLen > 1e-3 ? fd / fdLen : uWindDir;
+    fieldAmp = mf.b * 2.0;
+  }
+  vec2 midAxis    = rotateBy(baseDir, uMidRot);
+  vec2 strongAxis = rotateBy(baseDir, uStrongRot);
+
   vec2 duv = vec2(0.0);
 
-  float gate = max(wMid, wStrong) * uWindStrength * uMovementScale;
+  // fieldAmp 併進 gate：振幅倍率為 0 的區域直接跳過整段運算
+  float gate = max(wMid, wStrong) * uWindStrength * uMovementScale * max(fieldAmp, 0.0);
 
   if (gate > 0.0) {
     float p = uPhase;
@@ -320,11 +354,12 @@ void main() {
     float total = clamp(wMid + wStrong, 0.0, 1.0);
     float t = total > 1e-4 ? wStrong / total : 0.0;
 
-    vec2 axisRaw = mix(uMidAxis, uStrongAxis, t);
+    vec2 axisRaw = mix(midAxis, strongAxis, t);
     float axisLen = length(axisRaw);
-    vec2 axis = axisLen > 1e-4 ? axisRaw / axisLen : uMidAxis;
+    vec2 axis = axisLen > 1e-4 ? axisRaw / axisLen : midAxis;
 
-    vec2 offsetPx = axis * (total * mix(uMidAmpPx, uStrongAmpPx, t) * mix(sMid, sStrong, t));
+    vec2 offsetPx = axis
+      * (total * mix(uMidAmpPx, uStrongAmpPx, t) * mix(sMid, sStrong, t) * fieldAmp);
 
     // px -> uv，再套上使用者的強度控制。
     // uWindStrength = 0 時，這裡精確為 vec2(0.0)。
